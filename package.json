@@ -1,0 +1,19 @@
+{
+  "name": "steam-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tracker.js",
+  "scripts": {
+    "dev": "node tracker.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "discord.js": "^14.25.1",
+    "steam-user": "^5.2.3"
+  }
+}
