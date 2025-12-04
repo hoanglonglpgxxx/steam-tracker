@@ -118,7 +118,7 @@ discordClient.on('messageCreate', async (message) => {
 
     if (message.content === '!reminder') {
         const msg = await message.reply("reminder");
-        console.log(new Date(), message.channelId);
+        console.log(new Date(), message.channelId, message.channel());
     }
 });
 
