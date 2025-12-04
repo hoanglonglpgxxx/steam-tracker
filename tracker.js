@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 
 // ================= CẤU HÌNH (SỬA Ở ĐÂY) =================
+require('dotenv').config();
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const APP_ID = 247060; // Dota 2 Test 2 (Chuẩn theo SteamDB)
 const CHECK_INTERVAL = 12 * 60 * 60 * 1000;
@@ -113,6 +114,11 @@ discordClient.on('messageCreate', async (message) => {
         } catch (e) {
             await msg.edit(`❌ Lỗi: ${e.message}`);
         }
+    }
+
+    if (message.content === '!test') {
+        const msg = await message.reply("Test nè");
+        console.log('test nè');
     }
 });
 
