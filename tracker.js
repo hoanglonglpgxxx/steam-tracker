@@ -1,11 +1,22 @@
 const SteamUser = require('steam-user');
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const {
+    Client,
+    GatewayIntentBits,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle
+} = require('discord.js');
 const fs = require('fs');
 
 // ================= CẤU HÌNH (SỬA Ở ĐÂY) =================
 require('dotenv').config();
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const APP_ID = 247060; // Dota 2 Test 2 (Chuẩn theo SteamDB)
+const CHANNEL_ID = '1446083526826004591'; // ID của channel Reminder
+const APP_ID = 247060; // Dota 2 Test 2
 const CHECK_INTERVAL = 12 * 60 * 60 * 1000;
 const STATE_FILE = './last_change.json';
 
@@ -29,7 +40,7 @@ if (fs.existsSync(STATE_FILE)) {
     try { lastChangeNumber = JSON.parse(fs.readFileSync(STATE_FILE)).changeNumber || 0; } catch (e) { }
 }
 
-// Tự động nhớ máy (Sentry), lần sau không hỏi code nữa
+// --- PHẦN STEAM ---
 steamClient.setOption('promptSteamGuardCode', false);
 steamClient.logOn(STEAM_ACC);
 
@@ -60,7 +71,6 @@ function getSteamUpdateInfo() {
             if (err) return reject(new Error(`Lỗi kết nối Steam: ${err.message}`));
 
             const appData = apps[APP_ID];
-
             if (!appData) return reject(new Error("Không tìm thấy dữ liệu App (Đang chờ License hoặc sai ID)"));
 
             let changeNum = appData.changenumber;
@@ -71,7 +81,6 @@ function getSteamUpdateInfo() {
             if (!changeNum) return reject(new Error("Dữ liệu về (OK) nhưng không có Change Number."));
 
             let finalName = "";
-
             if (APP_ID === 247060) {
                 finalName = "SteamDB Unknown App 247060 (Dota 2 Test 2 - Dedicated Server)";
             } else {
@@ -88,11 +97,15 @@ function getSteamUpdateInfo() {
     });
 }
 
+// --- PHẦN DISCORD ---
+
 discordClient.on('ready', () => console.log(`[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
+// 1. BẮT SỰ KIỆN TIN NHẮN (!status, !code, !reminder)
 discordClient.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // Lệnh nhập code Steam
     if (message.content.startsWith('!code ')) {
         const code = message.content.split(' ')[1];
         if (steamGuardCallback) {
@@ -104,6 +117,7 @@ discordClient.on('messageCreate', async (message) => {
         return;
     }
 
+    // Lệnh Status
     if (message.content === '!status') {
         if (!steamClient.steamID) return message.reply("⚠️ Bot chưa login xong Steam. Vui lòng chờ...");
 
@@ -116,27 +130,77 @@ discordClient.on('messageCreate', async (message) => {
         }
     }
 
+    // Lệnh Reminder (SỬA ĐỔI: Gửi nút thay vì gọi hàm xử lý ngay)
     if (message.content === '!reminder') {
-        const msg = await message.reply("reminder");
-        console.log(new Date(), message.channelId, message.channel());
+        if (message.channelId !== CHANNEL_ID) return;
+
+        // Tạo nút bấm
+        const button = new ButtonBuilder()
+            .setCustomId('open_reminder_modal')
+            .setLabel('Tạo Nhắc Nhở')
+            .setStyle(ButtonStyle.Primary)
+            .setEmoji('⏰');
+
+        const row = new ActionRowBuilder().addComponents(button);
+
+        await message.reply({
+            content: "👇 Bấm nút dưới để nhập thông tin Reminder:",
+            components: [row]
+        });
     }
 });
+
+discordClient.on('interactionCreate', async (interaction) => {
+    if (interaction.isButton() && interaction.customId === 'open_reminder_modal') {
+        const modal = new ModalBuilder()
+            .setCustomId('reminder_modal_submit')
+            .setTitle('Cài Đặt Nhắc Nhở');
+
+        const contentInput = new TextInputBuilder()
+            .setCustomId('reminder_content')
+            .setLabel("Nội dung cần nhắc")
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder("Ví dụ: Check server update...")
+            .setRequired(true);
+
+        const timeInput = new TextInputBuilder()
+            .setCustomId('reminder_time')
+            .setLabel("Thời gian (phút)")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder("30")
+            .setRequired(true);
+
+        const row1 = new ActionRowBuilder().addComponents(contentInput);
+        const row2 = new ActionRowBuilder().addComponents(timeInput);
+
+        modal.addComponents(row1, row2);
+
+        await interaction.showModal(modal);
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId === 'reminder_modal_submit') {
+        const content = interaction.fields.getTextInputValue('reminder_content');
+        const time = interaction.fields.getTextInputValue('reminder_time');
+
+        // Logic xử lý Reminder của bạn ở đây (ví dụ lưu vào DB hoặc setTimeout)
+
+        await interaction.reply({
+            content: `✅ **Đã tạo Reminder thành công!**\n- Nội dung: ${content}\n- Thời gian: ${time} phút nữa.`
+        });
+    }
+});
+
+// --- CÁC HÀM HỖ TRỢ ---
 
 async function autoCheckUpdate() {
     try {
         if (!steamClient.steamID) return;
-
         const info = await getSteamUpdateInfo();
 
         if (info.changeNumber > lastChangeNumber) {
             console.log(`[UPDATE] Phát hiện Changelist mới: ${info.changeNumber}`);
-
             lastChangeNumber = info.changeNumber;
             fs.writeFileSync(STATE_FILE, JSON.stringify({ changeNumber: lastChangeNumber }));
-
-            // Tùy chọn: Gửi tin nhắn vào kênh Discord (bỏ comment dòng dưới và điền ID kênh)
-            // const channel = discordClient.channels.cache.get('ID_KENH_MUON_BAO');
-            // if (channel) channel.send({ embeds: [createSteamDBEmbed(info, lastChangeNumber - 1)] }); 
         }
     } catch (e) {
         console.error('[AUTO CHECK ERROR]', e.message);
@@ -145,7 +209,6 @@ async function autoCheckUpdate() {
 
 function createSteamDBEmbed(info, oldVer) {
     const isNew = info.changeNumber > oldVer;
-
     return new EmbedBuilder()
         .setColor(isNew ? 0x66c0f4 : 0x1b2838)
         .setTitle(`Changelist #${info.changeNumber}`)
@@ -155,7 +218,6 @@ function createSteamDBEmbed(info, oldVer) {
             { name: 'AppID', value: `\`${APP_ID}\``, inline: true },
             { name: 'Type', value: `\`Unknown\``, inline: true },
             { name: 'Name', value: `\`${info.name}\``, inline: false },
-
             { name: '🆕 Changelist ID', value: `\`#${info.changeNumber}\``, inline: true },
             { name: '⏮️ Previous', value: `\`#${oldVer}\``, inline: true }
         )
