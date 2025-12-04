@@ -116,9 +116,9 @@ discordClient.on('messageCreate', async (message) => {
         }
     }
 
-    if (message.content === '!test') {
-        const msg = await message.reply("Test nè");
-        console.log('test nè');
+    if (message.content === '!reminder') {
+        const msg = await message.reply("reminder");
+        console.log(new Date(), message.channelId);
     }
 });
 
