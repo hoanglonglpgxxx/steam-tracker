@@ -45,13 +45,13 @@ steamClient.setOption('promptSteamGuardCode', false);
 steamClient.logOn(STEAM_ACC);
 
 steamClient.on('loggedOn', () => {
-    console.log('[STEAM] ✅ Đăng nhập thành công!');
+    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!');
     steamGuardCallback = null;
 
-    console.log(`[STEAM] Đang request license cho App ${APP_ID}...`);
+    console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
     steamClient.requestFreeLicense([APP_ID], (err, grantedPackages, grantedAppIds) => {
         setTimeout(() => {
-            console.log('[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
+            console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
             autoCheckUpdate();
             setInterval(autoCheckUpdate, CHECK_INTERVAL);
         }, 5000);
@@ -59,11 +59,11 @@ steamClient.on('loggedOn', () => {
 });
 
 steamClient.on('steamGuard', (domain, callback) => {
-    console.log('[!!!] STEAM YÊU CẦU MÃ CODE. Vui lòng chat trên Discord: !code <mã_số>');
+    console.log(new Date().toLocaleString('vi-VN', {}), '[!!!] STEAM YÊU CẦU MÃ CODE. Vui lòng chat trên Discord: !code <mã_số>');
     steamGuardCallback = callback;
 });
 
-steamClient.on('error', (err) => console.log('[STEAM ERROR]', err));
+steamClient.on('error', (err) => console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM ERROR]', err));
 
 function getSteamUpdateInfo() {
     return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ function getSteamUpdateInfo() {
 
 // --- PHẦN DISCORD ---
 
-discordClient.on('ready', () => console.log(`[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
+discordClient.on('ready', () => console.log(new Date().toLocaleString('vi-VN', {}), `[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
 // 1. BẮT SỰ KIỆN TIN NHẮN (!status, !code, !reminder)
 discordClient.on('messageCreate', async (message) => {
@@ -198,9 +198,11 @@ async function autoCheckUpdate() {
         const info = await getSteamUpdateInfo();
 
         if (info.changeNumber > lastChangeNumber) {
-            console.log(`[UPDATE] Phát hiện Changelist mới: ${info.changeNumber}`);
+            console.log(new Date().toLocaleString('vi-VN', {}), `[UPDATE] Detect new Changelist: ${info.changeNumber}`);
             lastChangeNumber = info.changeNumber;
             fs.writeFileSync(STATE_FILE, JSON.stringify({ changeNumber: lastChangeNumber }));
+        } else {
+            console.log(new Date().toLocaleString('vi-VN', {}), `[UPDATE] Nothing new`);
         }
     } catch (e) {
         console.error('[AUTO CHECK ERROR]', e.message);
