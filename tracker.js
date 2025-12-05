@@ -99,7 +99,7 @@ function getSteamUpdateInfo() {
 
 // --- PHẦN DISCORD ---
 
-discordClient.on('ready', () => console.log(new Date().toLocaleString('vi-VN', {}), `[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
+discordClient.on('clientReady', () => console.log(new Date().toLocaleString('vi-VN', {}), `[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
 // 1. BẮT SỰ KIỆN TIN NHẮN (!status, !code, !reminder)
 discordClient.on('messageCreate', async (message) => {
