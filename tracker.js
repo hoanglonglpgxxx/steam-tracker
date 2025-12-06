@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
 const {
+    Client,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
     ActionRowBuilder,
