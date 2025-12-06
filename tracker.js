@@ -1,5 +1,5 @@
 const SteamUser = require('steam-user');
-
+const DB = require('./connection');
 const {
     Client,
     GatewayIntentBits,
@@ -20,6 +20,12 @@ const CHANNEL_ID = '1446083526826004591'; // ID của channel Reminder
 const APP_ID = 247060; // Dota 2 Test 2
 const CHECK_INTERVAL = 12 * 60 * 60 * 1000;
 const STATE_FILE = './last_change.json';
+
+const DB = process.env.DATABASE ? process.env.DATABASE.replace(
+    '<PASSWORD>',
+    encodeURIComponent(process.env.DATABASE_PASSWORD || '')
+) : null;
+
 
 const STEAM_ACC = {
     accountName: process.env.ACCOUNT_NAME,
@@ -45,7 +51,23 @@ if (fs.existsSync(STATE_FILE)) {
 steamClient.setOption('promptSteamGuardCode', false);
 steamClient.logOn(STEAM_ACC);
 
-steamClient.on('loggedOn', () => {
+steamClient.on('loggedOn', async () => {
+    if (DB) {
+        try {
+            await mongoose.connect(DB, {
+                serverSelectionTimeoutMS: 30000,
+                socketTimeoutMS: 45000,
+                retryWrites: true,
+            });
+            console.log('DB connected');
+        } catch (err) {
+            console.error('DB connection error:', err);
+            process.exit(1);
+        }
+    } else {
+        console.log('No DATABASE configuration found, skipping database connection');
+    }
+
     console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!', DB);
     steamGuardCallback = null;
 
