@@ -259,13 +259,13 @@ discordClient.on('interactionCreate', async (interaction) => {
         const totalMinutes = parseInt(interaction.customId.split('_')[3]);
         const title = interaction.fields.getTextInputValue('reminder_title');
 
-        const notifyTime = new Date(Date.now() + totalMinutes * 60000);
+        const timestampMs = Date.now() + (totalMinutes * 60000);
 
         try {
             const newReminder = new Reminder({
                 name: title,
                 description: title,
-                startDates: totalMinutes.toString(),
+                startDates: [timestampMs],
                 isConfirmed: false
             });
 

@@ -18,7 +18,7 @@ const reminderSchema = new mongoose.Schema({
         default: Date.now,
         select: false
     },
-    startDates: [Date],
+    startDates: [Number],
     isConfirmed: {
         type: Boolean,
         default: false
