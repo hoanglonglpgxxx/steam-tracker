@@ -2,16 +2,13 @@ const mongoose = require('mongoose');
 const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
 const {
-    Client,
-    GatewayIntentBits,
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ModalBuilder,
     StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ModalBuilder,
     TextInputBuilder,
-    TextInputStyle
+    TextInputStyle,
+    ComponentType
 } = require('discord.js');
 const fs = require('fs');
 
@@ -157,71 +154,75 @@ discordClient.on('messageCreate', async (message) => {
     // Lệnh Reminder (SỬA ĐỔI: Gửi nút thay vì gọi hàm xử lý ngay)
     if (message.content === '!reminder') {
         if (message.channelId !== CHANNEL_ID) return;
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId('reminder_select_time')
+            .setPlaceholder('Chọn thời gian muốn nhắc...')
+            .addOptions(
+                new StringSelectMenuOptionBuilder().setLabel('15 Phút').setValue('15'),
+                new StringSelectMenuOptionBuilder().setLabel('30 Phút').setValue('30'),
+                new StringSelectMenuOptionBuilder().setLabel('1 Giờ').setValue('60'),
+                new StringSelectMenuOptionBuilder().setLabel('2 Giờ').setValue('120'),
+                new StringSelectMenuOptionBuilder().setLabel('24 Giờ (Ngày mai)').setValue('1440'),
+            );
 
-        // Tạo nút bấm
-        const button = new ButtonBuilder()
-            .setCustomId('open_reminder_modal')
-            .setLabel('Tạo Nhắc Nhở')
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji('⏰');
-
-        const row = new ActionRowBuilder().addComponents(button);
+        const row = new ActionRowBuilder().addComponents(selectMenu);
 
         await message.reply({
-            content: "👇 Bấm nút dưới để nhập thông tin Reminder:",
+            content: "⏱️ **Bước 1:** Vui lòng chọn thời gian muốn nhắc trước:",
             components: [row]
         });
     }
 });
 
 discordClient.on('interactionCreate', async (interaction) => {
-    if (interaction.isButton() && interaction.customId === 'open_reminder_modal') {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'reminder_select_time') {
+        const selectedTime = interaction.values[0];
+
         const modal = new ModalBuilder()
-            .setCustomId('reminder_modal_submit')
-            .setTitle('Cài Đặt Nhắc Nhở');
+            .setCustomId(`reminder_modal_submit_${selectedTime}`)
+            .setTitle('Bước 2: Chi tiết nhắc nhở');
 
         const titleInput = new TextInputBuilder()
             .setCustomId('reminder_title')
             .setLabel("Nội dung cần nhắc")
             .setStyle(TextInputStyle.Paragraph)
-            .setPlaceholder("Ví dụ: Check server update...")
             .setRequired(true);
 
-        const descriptionInput = new TextInputBuilder()
-            .setCustomId('reminder_description')
-            .setLabel("Mô tả")
-            .setStyle(TextInputStyle.Paragraph)
-            .setPlaceholder("Ví dụ: Check server update...")
-            .setRequired(true);
-
-        const timeInput = new StringSelectMenuBuilder({
-            custom_id: 'a cool select menu',
-            placeholder: 'Chọn thời gian',
-            max_values: 1,
-            options: [
-                { label: 'option 1', value: '1' },
-                { label: 'option 2', value: '2' },
-                { label: 'option 3', value: '3' },
-            ],
-        });
+        const dateInput = new TextInputBuilder()
+            .setCustomId('reminder_date')
+            .setLabel("Ngày (Định dạng DD/MM/YYYY)")
+            .setPlaceholder("Ví dụ: 07/12/2025")
+            .setStyle(TextInputStyle.Short)
+            .setRequired(false);
 
         const row1 = new ActionRowBuilder().addComponents(titleInput);
-        const row2 = new ActionRowBuilder().addComponents(descriptionInput);
-        const row3 = new ActionRowBuilder().addComponents(timeInput);
+        const row2 = new ActionRowBuilder().addComponents(dateInput);
 
-        modal.addComponents(row1, row2, row3);
+        modal.addComponents(row1, row2);
 
         await interaction.showModal(modal);
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === 'reminder_modal_submit') {
+    if (interaction.isModalSubmit() && interaction.customId.startsWith('reminder_modal_submit_')) {
+
+        const timeFromMenu = interaction.customId.split('_')[3];
+
         const title = interaction.fields.getTextInputValue('reminder_title');
-        const description = interaction.fields.getTextInputValue('reminder_description');
-        const time = interaction.fields.getTextInputValue('reminder_time');
+        const dateStr = interaction.fields.getTextInputValue('reminder_date');
+
+        let finalTimeMsg = "";
+
+        if (dateStr) {
+            finalTimeMsg = `Vào ngày: ${dateStr}`;
+            // TODO: Code convert DD/MM/YYYY sang Date object ở đây
+        } else {
+            finalTimeMsg = `Sau: ${timeFromMenu} phút nữa`;
+            // TODO: Tính toán thời gian hiện tại + timeFromMenu
+        }
 
         try {
             const newReminder = new Reminder({
-                name: 'Test 1',
+                name: title,
                 description: content,
                 startDates: time,
                 isConfirmed: false
@@ -235,8 +236,9 @@ discordClient.on('interactionCreate', async (interaction) => {
                 console.error('Reason: The name "Test 1" already exists in the database (Unique constraint).');
             }
         }
+
         await interaction.reply({
-            content: `✅ **Đã tạo Reminder thành công!**\n- Nội dung: ${content}\n- Thời gian: ${time} phút nữa.`
+            content: `✅ **Đã tạo Reminder!**\n- Nội dung: ${title}\n- Thời gian: ${finalTimeMsg}`
         });
     }
 });
