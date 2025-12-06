@@ -9,6 +9,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
     ModalBuilder,
+    StringSelectMenuBuilder,
     TextInputBuilder,
     TextInputStyle
 } = require('discord.js');
