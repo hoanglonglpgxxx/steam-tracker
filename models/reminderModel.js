@@ -7,8 +7,8 @@ const reminderSchema = new mongoose.Schema({
         trim: true,
         required: [true, 'Tour must have a name'],
         unique: true,
-        maxlength: [255, 'A tour name must have less or equal than 255 characters'],
-        minlength: [10, 'A tour name must have more or equal than 15 characters']
+        // maxlength: [255, 'A tour name must have less or equal than 255 characters'],
+        // minlength: [10, 'A tour name must have more or equal than 15 characters']
     },
     description: {
         type: String,
