@@ -7,8 +7,6 @@ const reminderSchema = new mongoose.Schema({
         trim: true,
         required: [true, 'Tour must have a name'],
         unique: true,
-        // maxlength: [255, 'A tour name must have less or equal than 255 characters'],
-        // minlength: [10, 'A tour name must have more or equal than 15 characters']
     },
     description: {
         type: String,
@@ -17,7 +15,7 @@ const reminderSchema = new mongoose.Schema({
     slug: String,
     createdAt: {
         type: Date,
-        default: Date.now(),
+        default: Date.now,
         select: false
     },
     startDates: [Date],
@@ -27,19 +25,21 @@ const reminderSchema = new mongoose.Schema({
     },
 }, {
     toJSON: {
-        virtuals: TransformStreamDefaultController
+        virtuals: true
     },
     toObject: {
-        virtuals: TransformStreamDefaultController
+        virtuals: true
     },
 });
 
 reminderSchema.index({ slug: 1 });
+
 reminderSchema.pre('save', function (next) {
-    //points to current process document 
-    this.slug = slugify(this.name, { lower: true });
+    if (this.name) {
+        this.slug = slugify(this.name, { lower: true });
+    }
     next();
 });
 
-const Reminder = mongoose.model('Reminder', reminderSchema); // a model
+const Reminder = mongoose.model('Reminder', reminderSchema);
 module.exports = Reminder;
