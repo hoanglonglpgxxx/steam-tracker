@@ -1,4 +1,5 @@
 const SteamUser = require('steam-user');
+import DB from './connection';
 const {
     Client,
     GatewayIntentBits,
@@ -45,7 +46,7 @@ steamClient.setOption('promptSteamGuardCode', false);
 steamClient.logOn(STEAM_ACC);
 
 steamClient.on('loggedOn', () => {
-    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!');
+    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!', DB);
     steamGuardCallback = null;
 
     console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
