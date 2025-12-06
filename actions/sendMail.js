@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { trusted } = require('mongoose');
 const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport({
@@ -5,8 +6,8 @@ let transporter = nodemailer.createTransport({
     port: 465,
     secure: trusted,
     auth: {
-        user: 'long.ezmar.010@gmail.com',
-        pass: 'Rea17233H7NV5Wb'
+        user: process.env.SENDER_EMAIL,
+        pass: process.env.SENDER_PASSWORD,
     }
 });
 
@@ -18,4 +19,4 @@ let mailOptions = {
     html: '<b>This is an HTML email.</b>'
 };
 
-export { transporter, mailOptions };
+module.exports = { transporter, mailOptions };
