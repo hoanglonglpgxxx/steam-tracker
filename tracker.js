@@ -186,30 +186,30 @@ discordClient.on('messageCreate', async (message) => {
 });
 
 discordClient.on('interactionCreate', async (interaction) => {
+
     if (interaction.isStringSelectMenu() &&
         (interaction.customId === 'reminder_select_hour' || interaction.customId === 'reminder_select_min')) {
+
         const currentVal = parseInt(interaction.values[0]);
         const isHourMenu = interaction.customId === 'reminder_select_hour';
-
         let otherVal = null;
 
         interaction.message.components.forEach(row => {
             row.components.forEach(component => {
                 if (component.customId !== interaction.customId) {
                     const selectedOption = component.options.find(opt => opt.default);
-                    if (selectedOption) {
-                        otherVal = parseInt(selectedOption.value);
-                    }
+                    if (selectedOption) otherVal = parseInt(selectedOption.value);
                 }
             });
         });
 
         if (otherVal !== null) {
-            const totalMinutes = currentVal + otherVal;
+            const hour = isHourMenu ? currentVal : otherVal;
+            const minute = isHourMenu ? otherVal : currentVal;
 
             const modal = new ModalBuilder()
-                .setCustomId(`reminder_modal_submit_${totalMinutes}`) // Truyền tổng phút vào ID
-                .setTitle(`Nhắc sau: ${totalMinutes} phút`);
+                .setCustomId(`reminder_submit_${hour}_${minute}`)
+                .setTitle(`Hẹn giờ lúc ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
 
             const titleInput = new TextInputBuilder()
                 .setCustomId('reminder_title')
@@ -217,36 +217,33 @@ discordClient.on('interactionCreate', async (interaction) => {
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true);
 
+            const dateInput = new TextInputBuilder()
+                .setCustomId('reminder_date')
+                .setLabel("Ngày (DD/MM/YYYY)")
+                .setPlaceholder("Ví dụ: 07/12/2025 (Bỏ trống = Hôm nay)")
+                .setStyle(TextInputStyle.Short)
+                .setRequired(false);
 
             const row1 = new ActionRowBuilder().addComponents(titleInput);
-            modal.addComponents(row1);
+            const row2 = new ActionRowBuilder().addComponents(dateInput);
 
+            modal.addComponents(row1, row2);
             await interaction.showModal(modal);
-
         }
 
         else {
-
             const oldRows = interaction.message.components;
             const newRows = [];
-
             for (const row of oldRows) {
                 const oldComponent = row.components[0];
                 const newComponent = StringSelectMenuBuilder.from(oldComponent);
-
                 if (oldComponent.customId === interaction.customId) {
-                    newComponent.setOptions(
-                        oldComponent.options.map(opt => ({
-                            label: opt.label,
-                            value: opt.value,
-                            default: opt.value === interaction.values[0]
-                        }))
-                    );
+                    newComponent.setOptions(oldComponent.options.map(opt => ({
+                        label: opt.label, value: opt.value, default: opt.value === interaction.values[0]
+                    })));
                 }
-
                 newRows.push(new ActionRowBuilder().addComponents(newComponent));
             }
-
             await interaction.update({
                 content: `⏳ Đã chọn **${isHourMenu ? 'Giờ' : 'Phút'}**. Hãy chọn nốt mục còn lại...`,
                 components: newRows
@@ -254,12 +251,40 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
     }
 
-    if (interaction.isModalSubmit() && interaction.customId.startsWith('reminder_modal_submit_')) {
+    if (interaction.isModalSubmit() && interaction.customId.startsWith('reminder_submit_')) {
 
-        const totalMinutes = parseInt(interaction.customId.split('_')[3]);
+        const parts = interaction.customId.split('_');
+        const selectedHour = parseInt(parts[2]);
+        const selectedMinute = parseInt(parts[3]);
+
         const title = interaction.fields.getTextInputValue('reminder_title');
+        const dateInputStr = interaction.fields.getTextInputValue('reminder_date');
 
-        const timestampMs = Date.now() + (totalMinutes * 60000);
+        let targetDate = new Date();
+
+        if (dateInputStr.trim() !== "") {
+            const dateParts = dateInputStr.split('/');
+            if (dateParts.length === 3) {
+                const day = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1;
+                const year = parseInt(dateParts[2]);
+                targetDate = new Date(year, month, day);
+            }
+        }
+
+        targetDate.setHours(selectedHour);
+        targetDate.setMinutes(selectedMinute);
+        targetDate.setSeconds(0);
+        targetDate.setMilliseconds(0);
+
+        const timestampMs = targetDate.getTime();
+
+        if (timestampMs < Date.now()) {
+            return interaction.reply({
+                content: `⚠️ Thời gian bạn chọn (${targetDate.toLocaleString('vi-VN')}) đã qua rồi! Vui lòng chọn lại.`,
+                ephemeral: true
+            });
+        }
 
         try {
             const newReminder = new Reminder({
@@ -270,18 +295,15 @@ discordClient.on('interactionCreate', async (interaction) => {
             });
 
             await newReminder.save();
-            console.log('✅ Document saved successfully to MongoDB!');
 
+            const discordTimestamp = Math.floor(timestampMs / 1000);
             await interaction.reply({
-                content: `✅ **Đã tạo Nhắc Nhở!**\n- Nội dung: ${title}\n- Thời gian: ${totalMinutes} phút nữa (lúc ${new Date(timestampMs).toLocaleTimeString('vi-VN')})`
+                content: `✅ **Đã tạo Nhắc Nhở!**\n- Nội dung: ${title}\n- Thời gian: <t:${discordTimestamp}:F> (<t:${discordTimestamp}:R>)`
             });
 
         } catch (err) {
-            console.error('❌ FAILED to save document:', err.message);
-            await interaction.reply({
-                content: `❌ Lỗi lưu database: ${err.message}`,
-                ephemeral: true
-            });
+            console.error(err);
+            await interaction.reply({ content: `❌ Lỗi: ${err.message}`, ephemeral: true });
         }
     }
 });
