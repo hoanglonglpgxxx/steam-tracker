@@ -69,24 +69,6 @@ steamClient.on('loggedOn', async () => {
         console.log('No DATABASE configuration found, skipping database connection');
     }
 
-    try {
-        const newReminder = new Reminder({
-            name: 'Test 1',
-            description: 'Test desc',
-            startDates: [1765645200000],
-            isConfirmed: false
-        });
-
-        await newReminder.save();
-        console.log('✅ Document saved successfully to MongoDB!');
-    } catch (err) {
-        console.error('❌ FAILED to save document:', err.message);
-        // This will tell you if it is a "Duplicate Key" or "Validation Error"
-        if (err.code === 11000) {
-            console.error('Reason: The name "Test 1" already exists in the database (Unique constraint).');
-        }
-    }
-
     steamGuardCallback = null;
 
     console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
@@ -197,34 +179,61 @@ discordClient.on('interactionCreate', async (interaction) => {
             .setCustomId('reminder_modal_submit')
             .setTitle('Cài Đặt Nhắc Nhở');
 
-        const contentInput = new TextInputBuilder()
-            .setCustomId('reminder_content')
+        const titleInput = new TextInputBuilder()
+            .setCustomId('reminder_title')
             .setLabel("Nội dung cần nhắc")
             .setStyle(TextInputStyle.Paragraph)
             .setPlaceholder("Ví dụ: Check server update...")
             .setRequired(true);
 
-        const timeInput = new TextInputBuilder()
-            .setCustomId('reminder_time')
-            .setLabel("Thời gian (phút)")
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder("30")
+        const descriptionInput = new TextInputBuilder()
+            .setCustomId('reminder_description')
+            .setLabel("Mô tả")
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder("Ví dụ: Check server update...")
             .setRequired(true);
 
-        const row1 = new ActionRowBuilder().addComponents(contentInput);
-        const row2 = new ActionRowBuilder().addComponents(timeInput);
+        const timeInput = new StringSelectMenuBuilder({
+            custom_id: 'a cool select menu',
+            placeholder: 'Chọn thời gian',
+            max_values: 1,
+            options: [
+                { label: 'option 1', value: '1' },
+                { label: 'option 2', value: '2' },
+                { label: 'option 3', value: '3' },
+            ],
+        });
 
-        modal.addComponents(row1, row2);
+        const row1 = new ActionRowBuilder().addComponents(titleInput);
+        const row2 = new ActionRowBuilder().addComponents(descriptionInput);
+        const row3 = new ActionRowBuilder().addComponents(timeInput);
+
+        modal.addComponents(row1, row2, row3);
 
         await interaction.showModal(modal);
     }
 
     if (interaction.isModalSubmit() && interaction.customId === 'reminder_modal_submit') {
-        const content = interaction.fields.getTextInputValue('reminder_content');
+        const title = interaction.fields.getTextInputValue('reminder_title');
+        const description = interaction.fields.getTextInputValue('reminder_description');
         const time = interaction.fields.getTextInputValue('reminder_time');
 
-        // Logic xử lý Reminder của bạn ở đây (ví dụ lưu vào DB hoặc setTimeout)
+        try {
+            const newReminder = new Reminder({
+                name: 'Test 1',
+                description: content,
+                startDates: time,
+                isConfirmed: false
+            });
 
+            await newReminder.save();
+            console.log('✅ Document saved successfully to MongoDB!');
+        } catch (err) {
+            console.error('❌ FAILED to save document:', err.message);
+            if (err.code === 11000) {
+                console.error('Reason: The name "Test 1" already exists in the database (Unique constraint).');
+            }
+        }
         await interaction.reply({
             content: `✅ **Đã tạo Reminder thành công!**\n- Nội dung: ${content}\n- Thời gian: ${time} phút nữa.`
         });
