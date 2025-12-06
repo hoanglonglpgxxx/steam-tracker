@@ -290,7 +290,7 @@ discordClient.on('interactionCreate', async (interaction) => {
             const newReminder = new Reminder({
                 name: title,
                 description: title,
-                startDates: [timestampMs],
+                startDates: timestampMs,
                 isConfirmed: false
             });
 
