@@ -273,7 +273,7 @@ discordClient.on('interactionCreate', async (interaction) => {
             console.log('✅ Document saved successfully to MongoDB!');
 
             await interaction.reply({
-                content: `✅ **Đã tạo Nhắc Nhở!**\n- Nội dung: ${title}\n- Thời gian: ${totalMinutes} phút nữa (lúc ${notifyTime.toLocaleTimeString('vi-VN')})`
+                content: `✅ **Đã tạo Nhắc Nhở!**\n- Nội dung: ${title}\n- Thời gian: ${totalMinutes} phút nữa (lúc ${new Date(timestampMs).toLocaleTimeString('vi-VN')})`
             });
 
         } catch (err) {
