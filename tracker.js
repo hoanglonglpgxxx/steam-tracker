@@ -3,6 +3,8 @@ const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
 const {
     Client,
+    GatewayIntentBits,
+    EmbedBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
     ActionRowBuilder,
