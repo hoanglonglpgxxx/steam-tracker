@@ -35,6 +35,8 @@ const STEAM_ACC = {
     password: process.env.PASSWORD
 };
 
+console.log(STEAM_ACC);
+
 // ========================================================
 
 const steamClient = new SteamUser();
