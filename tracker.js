@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
 const {
     Client,
@@ -68,7 +69,9 @@ steamClient.on('loggedOn', async () => {
         console.log('No DATABASE configuration found, skipping database connection');
     }
 
-    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!', DB);
+    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!');
+    const newReminder = new Reminder({ name: 'Test 1', description: 'Test desc', startDates: 1765645200000, isConfirmed: false });
+    await newReminder.save();
     steamGuardCallback = null;
 
     console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
