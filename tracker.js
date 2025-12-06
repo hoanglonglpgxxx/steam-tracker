@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const SteamUser = require('steam-user');
 const {
     Client,
