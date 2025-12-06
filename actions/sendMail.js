@@ -18,4 +18,4 @@ let mailOptions = {
     html: '<b>This is an HTML email.</b>'
 };
 
-export default { transporter, mailOptions };
+export { transporter, mailOptions };
