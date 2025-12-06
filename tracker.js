@@ -1,5 +1,5 @@
 const SteamUser = require('steam-user');
-import DB from './connection';
+
 const {
     Client,
     GatewayIntentBits,
