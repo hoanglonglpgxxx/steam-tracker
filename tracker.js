@@ -154,31 +154,33 @@ discordClient.on('messageCreate', async (message) => {
         }
     }
 
-    // Lệnh Reminder (SỬA ĐỔI: Gửi nút thay vì gọi hàm xử lý ngay)
     if (message.content === '!reminder') {
         if (message.channelId !== CHANNEL_ID) return;
-        const selectMenu = new StringSelectMenuBuilder()
-            .setCustomId('reminder_select_time')
-            .setPlaceholder('Chọn giờ muốn nhắc...')
+
+        const hourMenu = new StringSelectMenuBuilder()
+            .setCustomId('reminder_select_hour')
+            .setPlaceholder('Chọn GIỜ...')
             .addOptions(
-                Array.from({ length: 22 }, (_, i) =>
-                    new StringSelectMenuOptionBuilder().setLabel(`${i + 1} giờ`).setValue(((i + 1) * 60).toString())
+                Array.from({ length: 24 }, (_, i) =>
+                    new StringSelectMenuOptionBuilder().setLabel(`${i} giờ`).setValue(i.toString())
                 )
             );
-        const selectMenu2 = new StringSelectMenuBuilder()
+
+        const minMenu = new StringSelectMenuBuilder()
             .setCustomId('reminder_select_min')
-            .setPlaceholder('Chọn phút muốn nhắc...')
+            .setPlaceholder('Chọn PHÚT...')
             .addOptions(
                 Array.from({ length: 59 }, (_, i) =>
-                    new StringSelectMenuOptionBuilder().setLabel(`${i + 1} phút`).setValue((i + 1).toString())
+                    new StringSelectMenuOptionBuilder().setLabel(`${i} phút`).setValue(i.toString())
                 )
             );
-        const row = new ActionRowBuilder().addComponents(selectMenu);
-        const row2 = new ActionRowBuilder().addComponents(selectMenu2);
+
+        const row1 = new ActionRowBuilder().addComponents(hourMenu);
+        const row2 = new ActionRowBuilder().addComponents(minMenu);
 
         await message.reply({
-            content: "⏱️ **Bước 1:** Vui lòng chọn thời gian muốn nhắc trước:",
-            components: [row, row2]
+            content: "⏱️ **Cài đặt Nhắc Nhở**\nVui lòng chọn cả **Giờ** và **Phút** để tiếp tục:",
+            components: [row1, row2]
         });
     }
 });
