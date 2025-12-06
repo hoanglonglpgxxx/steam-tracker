@@ -161,7 +161,7 @@ discordClient.on('messageCreate', async (message) => {
             .setCustomId('reminder_select_hour')
             .setPlaceholder('Chọn GIỜ...')
             .addOptions(
-                Array.from({ length: 24 }, (_, i) =>
+                Array.from({ length: 23 }, (_, i) =>
                     new StringSelectMenuOptionBuilder().setLabel(`${i} giờ`).setValue(i.toString())
                 )
             );
@@ -170,8 +170,8 @@ discordClient.on('messageCreate', async (message) => {
             .setCustomId('reminder_select_min')
             .setPlaceholder('Chọn PHÚT...')
             .addOptions(
-                Array.from({ length: 59 }, (_, i) =>
-                    new StringSelectMenuOptionBuilder().setLabel(`${i} phút`).setValue(i.toString())
+                Array.from({ length: 12 }, (_, i) =>
+                    new StringSelectMenuOptionBuilder().setLabel(`${i * 5} phút`).setValue((i * 5).toString())
                 )
             );
 
