@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
+const { transporter, mailOptions } = require('./actions/sendMail');
 const {
     Client,
     GatewayIntentBits,
@@ -69,6 +70,14 @@ steamClient.on('loggedOn', async () => {
     } else {
         console.log('No DATABASE configuration found, skipping database connection');
     }
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error sending email:', error);
+        } else {
+            console.log('Email sent:', info.response);
+        }
+    });
 
     steamGuardCallback = null;
 
