@@ -69,9 +69,24 @@ steamClient.on('loggedOn', async () => {
         console.log('No DATABASE configuration found, skipping database connection');
     }
 
-    console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] ✅ Đăng nhập thành công!');
-    const newReminder = new Reminder({ name: 'Test 1', description: 'Test desc', startDates: 1765645200000, isConfirmed: false });
-    await newReminder.save();
+    try {
+        const newReminder = new Reminder({
+            name: 'Test 1',
+            description: 'Test desc',
+            startDates: [1765645200000],
+            isConfirmed: false
+        });
+
+        await newReminder.save();
+        console.log('✅ Document saved successfully to MongoDB!');
+    } catch (err) {
+        console.error('❌ FAILED to save document:', err.message);
+        // This will tell you if it is a "Duplicate Key" or "Validation Error"
+        if (err.code === 11000) {
+            console.error('Reason: The name "Test 1" already exists in the database (Unique constraint).');
+        }
+    }
+
     steamGuardCallback = null;
 
     console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
