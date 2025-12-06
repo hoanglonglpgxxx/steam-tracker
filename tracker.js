@@ -1,5 +1,4 @@
 const SteamUser = require('steam-user');
-const DB = require('./connection');
 const {
     Client,
     GatewayIntentBits,
