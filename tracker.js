@@ -159,16 +159,21 @@ discordClient.on('messageCreate', async (message) => {
         if (message.channelId !== CHANNEL_ID) return;
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('reminder_select_time')
-            .setPlaceholder('Chọn thời gian muốn nhắc...')
+            .setPlaceholder('Chọn giờ muốn nhắc...')
             .addOptions(
-                new StringSelectMenuOptionBuilder().setLabel('15 Phút').setValue('15'),
-                new StringSelectMenuOptionBuilder().setLabel('30 Phút').setValue('30'),
-                new StringSelectMenuOptionBuilder().setLabel('1 Giờ').setValue('60'),
-                new StringSelectMenuOptionBuilder().setLabel('2 Giờ').setValue('120'),
-                new StringSelectMenuOptionBuilder().setLabel('24 Giờ (Ngày mai)').setValue('1440'),
+                Array.from({ length: 22 }, (_, i) =>
+                    new StringSelectMenuOptionBuilder().setLabel(`${i + 1} giờ`).setValue(((i + 1) * 60).toString())
+                )
             );
-
-        const row = new ActionRowBuilder().addComponents(selectMenu);
+        const selectMenu2 = new StringSelectMenuBuilder()
+            .setCustomId('reminder_select_min')
+            .setPlaceholder('Chọn phút muốn nhắc...')
+            .addOptions(
+                Array.from({ length: 59 }, (_, i) =>
+                    new StringSelectMenuOptionBuilder().setLabel(`${i + 1} phút`).setValue((i + 1).toString())
+                )
+            );
+        const row = new ActionRowBuilder().addComponents(selectMenu, selectMenu2);
 
         await message.reply({
             content: "⏱️ **Bước 1:** Vui lòng chọn thời gian muốn nhắc trước:",
