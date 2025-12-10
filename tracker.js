@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Reminder = require('./models/reminderModel');
 const SteamUser = require('steam-user');
+const getData = require('./actions/getData');
 const { transporter, mailOptions } = require('./actions/sendMail');
 const {
     Client,
@@ -16,7 +17,8 @@ const {
 } = require('discord.js');
 const fs = require('fs');
 
-// ================= CẤU HÌNH (SỬA Ở ĐÂY) =================
+const scheduleTask = require('./actions/cronJobs');
+
 require('dotenv').config();
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = '1446083526826004591'; // ID của channel Reminder
@@ -50,41 +52,60 @@ if (fs.existsSync(STATE_FILE)) {
     try { lastChangeNumber = JSON.parse(fs.readFileSync(STATE_FILE)).changeNumber || 0; } catch (e) { }
 }
 
+
+function debugLog(str) {
+    console.log(new Date().toLocaleString('vi-VN', {}), str);
+}
+
+function sendMail(text) {
+    mailOptions.subject = 'Reminderrrrrr !!!!!';
+    mailOptions.text = text;
+    mailOptions.html = 'Reminderrrrrr !!!!!';
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            debugLog('Error sending email:', error);
+        } else {
+            debugLog('Email sent:', info.response);
+        }
+    });
+}
+
+async function test() {
+    let data = await getData();
+    console.log('123', data);
+}
+
+
+if (DB) {
+    try {
+        mongoose.connect(DB, {
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 45000,
+            retryWrites: true,
+        });
+        debugLog('DB connected');
+    } catch (err) {
+        console.error('DB connection error:', err);
+        process.exit(1);
+    }
+} else {
+    debugLog('No DATABASE configuration found, skipping database connection');
+}
+
+
+scheduleTask(test);
+
 // --- PHẦN STEAM ---
 steamClient.setOption('promptSteamGuardCode', false);
 steamClient.logOn(STEAM_ACC);
 
 steamClient.on('loggedOn', async () => {
-    if (DB) {
-        try {
-            await mongoose.connect(DB, {
-                serverSelectionTimeoutMS: 30000,
-                socketTimeoutMS: 45000,
-                retryWrites: true,
-            });
-            console.log('DB connected');
-        } catch (err) {
-            console.error('DB connection error:', err);
-            process.exit(1);
-        }
-    } else {
-        console.log('No DATABASE configuration found, skipping database connection');
-    }
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('Error sending email:', error);
-        } else {
-            console.log('Email sent:', info.response);
-        }
-    });
-
     steamGuardCallback = null;
 
-    console.log(new Date().toLocaleString('vi-VN', {}), `[STEAM] Đang request license cho App ${APP_ID}...`);
+    debugLog(`[STEAM] Đang request license cho App ${APP_ID}...`);
     steamClient.requestFreeLicense([APP_ID], (err, grantedPackages, grantedAppIds) => {
         setTimeout(() => {
-            console.log(new Date().toLocaleString('vi-VN', {}), '[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
+            debugLog('[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
             autoCheckUpdate();
             setInterval(autoCheckUpdate, CHECK_INTERVAL);
         }, 5000);
@@ -92,7 +113,7 @@ steamClient.on('loggedOn', async () => {
 });
 
 steamClient.on('steamGuard', (domain, callback) => {
-    console.log(new Date().toLocaleString('vi-VN', {}), '[!!!] STEAM YÊU CẦU MÃ CODE. Vui lòng chat trên Discord: !code <mã_số>');
+    debugLog('[!!!] STEAM YÊU CẦU MÃ CODE. Vui lòng chat trên Discord: !code <mã_số>');
     steamGuardCallback = callback;
 });
 
@@ -132,7 +153,7 @@ function getSteamUpdateInfo() {
 
 // --- PHẦN DISCORD ---
 
-discordClient.on('clientReady', () => console.log(new Date().toLocaleString('vi-VN', {}), `[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
+discordClient.on('clientReady', () => debugLog(`[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
 // 1. BẮT SỰ KIỆN TIN NHẮN (!status, !code, !reminder)
 discordClient.on('messageCreate', async (message) => {
@@ -324,11 +345,11 @@ async function autoCheckUpdate() {
         const info = await getSteamUpdateInfo();
 
         if (info.changeNumber > lastChangeNumber) {
-            console.log(new Date().toLocaleString('vi-VN', {}), `[UPDATE] Detect new Changelist: ${info.changeNumber}`);
+            debugLog(`[UPDATE] Detect new Changelist: ${info.changeNumber}`);
             lastChangeNumber = info.changeNumber;
             fs.writeFileSync(STATE_FILE, JSON.stringify({ changeNumber: lastChangeNumber }));
         } else {
-            console.log(new Date().toLocaleString('vi-VN', {}), `[UPDATE] Nothing new`);
+            debugLog(`[UPDATE] Nothing new`);
         }
     } catch (e) {
         console.error('[AUTO CHECK ERROR]', e.message);
