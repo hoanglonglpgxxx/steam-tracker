@@ -2,12 +2,19 @@ const cron = require('node-cron');
 const { getInTimeReminders, getNotSentReminders, getReminderById } = require('./getData');
 const { transporter, mailOptions } = require('./sendMail');
 const { debugLog, dateToCron } = require('../utils/helper');
+const fs = require('fs');
 
+try {
+    const htmlString = fs.readFileSync('../mailTemplate.html', 'utf8');
+} catch (err) {
+    console.error(err);
+}
 
 function sendMail(reminder) {
     mailOptions.subject = reminder.name;
     mailOptions.text = reminder.description;
-    mailOptions.html = `<button>${reminder.description}</button>`;
+
+    mailOptions.html = htmlString?.replace('DESCRIPTION', reminder.description) || 'Lỗi';
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             debugLog('Error sending email:', error);
@@ -26,12 +33,13 @@ const scheduleOneTask = (reminder) => {
 
     // Case A: Nếu thời gian đã trôi qua rồi mà chưa gửi -> Gửi bù ngay lập tức!
     if (startTime <= now) {
-        console.log(`[MISSED] Task ${reminder.name} was missed. Sending now...`);
+        console.log(`[MISSED] Task ${reminder.name} was missed.Sending now...`);
         executeTask(reminder);
         return;
     }
     // Case B: Thời gian ở tương lai -> Lên lịch
-    console.log(`[SCHEDULE] Task ${reminder.name} scheduled at ${startTime}`);
+    console.log(`[SCHEDULE] Task ${reminder.name
+        } scheduled at ${startTime} `);
 
     const timeExpression = dateToCron(startTime);
     const task = cron.schedule(timeExpression, () => {
@@ -79,7 +87,7 @@ const initScheduledJobs = async () => {
         scheduleOneTask(reminder);
     });
 
-    console.log(`--- Reloaded ${pendingReminders.length} tasks into RAM ---`);
+    console.log(`-- - Reloaded ${pendingReminders.length} tasks into RAM-- - `);
 };
 
 const taskAuto = async (time, callback) => {
