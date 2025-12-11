@@ -6,7 +6,7 @@ const { debugLog, dateToCron } = require('../utils/helper');
 
 function sendMail(reminder) {
     mailOptions.subject = reminder.name;
-    mailOptions.text = reminder.name;
+    mailOptions.text = reminder.description;
     mailOptions.html = 'Reminderrrrrr !!!!!';
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
