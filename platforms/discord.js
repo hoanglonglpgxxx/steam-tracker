@@ -1,5 +1,6 @@
 const { steamClient, getSteamUpdateInfo } = require('./steam');
 const { scheduleOneTask } = require('../actions/cronJobs');
+const Reminder = require('../models/reminderModel');
 const {
     Client,
     GatewayIntentBits,
