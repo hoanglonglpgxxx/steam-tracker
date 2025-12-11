@@ -5,7 +5,7 @@ const { debugLog, dateToCron } = require('../utils/helper');
 
 
 function sendMail(text) {
-    mailOptions.subject = 'Reminderrrrrr !!!!!';
+    mailOptions.subject = reminder.name;
     mailOptions.text = text;
     mailOptions.html = 'Reminderrrrrr !!!!!';
     transporter.sendMail(mailOptions, (error, info) => {
@@ -51,7 +51,7 @@ const executeTask = async (reminder) => {
         if (!currentDoc || currentDoc.isSent) return;
 
         // Gửi mail
-        await sendMail(`Reminder: ${reminder.name}`);
+        await sendMail(reminder);
         console.log(`[SENT] Email sent for ${reminder.name}`);
 
         // Update DB
@@ -75,7 +75,6 @@ const initScheduledJobs = async () => {
     // Lấy tất cả các task chưa gửi (isSent: false)
     // Không cần filter ngày, cứ chưa gửi là lấy lên để check
     const pendingReminders = await getNotSentReminders();
-    console.log(pendingReminders);
     pendingReminders.forEach(reminder => {
         scheduleOneTask(reminder);
     });
@@ -83,7 +82,14 @@ const initScheduledJobs = async () => {
     console.log(`--- Reloaded ${pendingReminders.length} tasks into RAM ---`);
 };
 
+const taskAuto = async (time, callback) => {
+    const task = cron.schedule(time, () => {
+        callback();
+    });
+};
+
 module.exports = {
     scheduleOneTask,
-    initScheduledJobs
+    initScheduledJobs,
+    taskAuto
 };

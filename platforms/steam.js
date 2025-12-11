@@ -1,5 +1,6 @@
 const SteamUser = require('steam-user');
 const { debugLog } = require('../utils/helper');
+const { taskAuto } = require('../actions/taskAuto');
 
 const CHECK_INTERVAL = 12 * 60 * 60 * 1000;
 const APP_ID = 247060;
@@ -23,9 +24,10 @@ function steamHandler(lastChangeNumber) {
             setTimeout(() => {
                 debugLog('[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
                 autoCheckUpdate();
-                setInterval(autoCheckUpdate, CHECK_INTERVAL);
+                taskAuto('0 0,12 * * *', autoCheckUpdate);
             }, 5000);
         });
+
     });
 
     steamClient.on('steamGuard', (domain, callback) => {
