@@ -4,9 +4,9 @@ const { transporter, mailOptions } = require('./sendMail');
 const { debugLog, dateToCron } = require('../utils/helper');
 
 
-function sendMail(text) {
+function sendMail(reminder) {
     mailOptions.subject = reminder.name;
-    mailOptions.text = text;
+    mailOptions.text = reminder.name;
     mailOptions.html = 'Reminderrrrrr !!!!!';
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -31,7 +31,7 @@ const scheduleOneTask = (reminder) => {
         return;
     }
     // Case B: Thời gian ở tương lai -> Lên lịch
-    console.log(`reminder, [SCHEDULE] Task ${reminder.name} scheduled at ${startTime}`);
+    console.log(`[SCHEDULE] Task ${reminder.name} scheduled at ${startTime}`);
 
     const timeExpression = dateToCron(startTime);
     const task = cron.schedule(timeExpression, () => {
