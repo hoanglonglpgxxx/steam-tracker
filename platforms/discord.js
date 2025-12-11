@@ -112,6 +112,12 @@ module.exports = function discordHandler(lastChangeNumber) {
 
                 const titleInput = new TextInputBuilder()
                     .setCustomId('reminder_title')
+                    .setLabel("Tiêu đề")
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setRequired(true);
+
+                const descInput = new TextInputBuilder()
+                    .setCustomId('reminder_desc')
                     .setLabel("Nội dung cần nhắc")
                     .setStyle(TextInputStyle.Paragraph)
                     .setRequired(true);
@@ -124,9 +130,10 @@ module.exports = function discordHandler(lastChangeNumber) {
                     .setRequired(false);
 
                 const row1 = new ActionRowBuilder().addComponents(titleInput);
-                const row2 = new ActionRowBuilder().addComponents(dateInput);
+                const row2 = new ActionRowBuilder().addComponents(descInput);
+                const row3 = new ActionRowBuilder().addComponents(dateInput);
 
-                modal.addComponents(row1, row2);
+                modal.addComponents(row1, row2, row3);
                 await interaction.showModal(modal);
             }
 
@@ -158,6 +165,8 @@ module.exports = function discordHandler(lastChangeNumber) {
 
             const title = interaction.fields.getTextInputValue('reminder_title');
             const dateInputStr = interaction.fields.getTextInputValue('reminder_date');
+            const description = interaction.fields.getTextInputValue('reminder_desc');
+
 
             let targetDate = new Date();
 
@@ -188,7 +197,7 @@ module.exports = function discordHandler(lastChangeNumber) {
             try {
                 const newReminder = new Reminder({
                     name: title,
-                    description: title,
+                    description: description,
                     startDate: timestampMs,
                 });
 
