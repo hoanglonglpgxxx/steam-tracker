@@ -1,21 +1,49 @@
 const Reminder = require('../models/reminderModel');
-const mongoose = require('mongoose');
 
-const startOfDay = new Date();
-startOfDay.setHours(0, 0, 0, 0);
-console.log(startOfDay);
-const startOfTomorrow = new Date(startOfDay);
-startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+async function getInTimeReminders() {
+    const VN_OFFSET = 7 * 60 * 60 * 1000;
 
-const startMs = startOfDay.getTime();
-const endMs = startOfTomorrow.getTime();
+    const now = new Date();
 
-module.exports = async function getData() {
+    const utcNow = now.getTime() + (now.getTimezoneOffset() * 60000);
+
+    const vnTime = new Date(utcNow + VN_OFFSET);
+
+    vnTime.setHours(0, 0, 0, 0);
+
+    const startMs = vnTime.getTime() - VN_OFFSET;
+    const endMs = startMs + (24 * 60 * 60 * 1000);
+
+    console.log(`Querying VN Day: ${vnTime.toLocaleDateString()}`);
+    console.log(`Range (Timestamp): ${startMs} - ${endMs}`);
+
     const reminders = await Reminder.find({
         startDate: {
             $gte: startMs,
             $lt: endMs
-        }
+        },
+        isSent: false
     });
+
     return reminders;
+};
+
+async function getNotSentReminders() {
+    const reminders = await Reminder.find({
+        isSent: false
+    });
+
+    return reminders;
+};
+
+async function getReminderById(id) {
+    const reminder = await Reminder.findById(id);
+
+    return reminder;
+}
+
+module.exports = {
+    getInTimeReminders,
+    getNotSentReminders,
+    getReminderById
 };
