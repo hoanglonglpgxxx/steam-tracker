@@ -19,7 +19,7 @@ function sendMail(reminder) {
     mailOptions.text = reminder.description;
 
     mailOptions.html = htmlString?.replace('DESCRIPTION', reminder.description) || 'Lỗi';
-    mailOptions.html.replace('ITEM_ID', reminder.id);
+    mailOptions.html = mailOptions.html.replace('ITEM_ID', reminder.id);
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             debugLog('Error sending email:', error);
