@@ -186,11 +186,11 @@ module.exports = function discordHandler(lastChangeNumber) {
             }
 
             try {
+                console.log('time mới tạo', timestampMs);
                 const newReminder = new Reminder({
                     name: title,
                     description: title,
                     startDate: timestampMs,
-                    isSent: false
                 });
 
                 await newReminder.save();
