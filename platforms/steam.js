@@ -1,6 +1,6 @@
 const SteamUser = require('steam-user');
 const { debugLog } = require('../utils/helper');
-const { taskAuto } = require('../actions/taskAuto');
+const { taskAuto } = require('../actions/cronJobs');
 
 const CHECK_INTERVAL = 12 * 60 * 60 * 1000;
 const APP_ID = 247060;
