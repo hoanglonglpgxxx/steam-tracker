@@ -4,8 +4,11 @@ const { transporter, mailOptions } = require('./sendMail');
 const { debugLog, dateToCron } = require('../utils/helper');
 const fs = require('fs');
 
+let htmlString;
 try {
-    const htmlString = fs.readFileSync('../mailTemplate.html', 'utf8');
+    const templatePath = path.join(__dirname, '../mailTemplate.html');
+
+    htmlString = fs.readFileSync(templatePath, 'utf8');
 } catch (err) {
     console.error(err);
 }
