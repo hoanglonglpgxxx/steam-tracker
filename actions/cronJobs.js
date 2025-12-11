@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { getInTimeReminders, getNotSentReminders, getReminderById } = require('./getData');
 const { transporter, mailOptions } = require('./sendMail');
 const { debugLog, dateToCron } = require('../utils/helper');
+const path = require('path');
 const fs = require('fs');
 
 let htmlString;
