@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { getInTimeReminders, getNotSentReminders, getReminderById } = require('./getData');
 const { transporter, mailOptions } = require('./sendMail');
+const { debugLog, dateToCron } = require('../utils/helper');
 
 
 function sendMail(text) {
@@ -32,9 +33,10 @@ const scheduleOneTask = (reminder) => {
     // Case B: Thời gian ở tương lai -> Lên lịch
     console.log(`reminder, [SCHEDULE] Task ${reminder.name} scheduled at ${startTime}`);
 
-    // node-cron hỗ trợ truyền Date object trực tiếp để chạy 1 lần
-    const task = cron.schedule(startTime, () => {
+    const timeExpression = dateToCron(startTime);
+    const task = cron.schedule(timeExpression, () => {
         executeTask(reminder);
+        task.stop();
     });
 
     // Lưu vào map để quản lý (nếu cần cancel sau này)
