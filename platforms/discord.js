@@ -65,29 +65,19 @@ module.exports = function discordHandler(lastChangeNumber) {
                     )
                 );
 
-            const minMenu = new StringSelectMenuBuilder()
-                .setCustomId('reminder_select_min')
-                .setPlaceholder('Chọn PHÚT...')
-                .addOptions(
-                    Array.from({ length: 12 }, (_, i) =>
-                        new StringSelectMenuOptionBuilder().setLabel(`${i * 5} phút`).setValue((i * 5).toString())
-                    )
-                );
 
             const row1 = new ActionRowBuilder().addComponents(hourMenu);
-            const row2 = new ActionRowBuilder().addComponents(minMenu);
 
             await message.reply({
                 content: "⏱️ **Cài đặt Nhắc Nhở**\nVui lòng chọn cả **Giờ** và **Phút** để tiếp tục:",
-                components: [row1, row2]
+                components: [row1]
             });
         }
     });
 
     discordClient.on('interactionCreate', async (interaction) => {
 
-        if (interaction.isStringSelectMenu() &&
-            (interaction.customId === 'reminder_select_hour' || interaction.customId === 'reminder_select_min')) {
+        if (interaction.isStringSelectMenu() && interaction.customId === 'reminder_select_hour') {
 
             const currentVal = parseInt(interaction.values[0]);
             const isHourMenu = interaction.customId === 'reminder_select_hour';
@@ -104,11 +94,10 @@ module.exports = function discordHandler(lastChangeNumber) {
 
             if (otherVal !== null) {
                 const hour = isHourMenu ? currentVal : otherVal;
-                const minute = isHourMenu ? otherVal : currentVal;
 
                 const modal = new ModalBuilder()
-                    .setCustomId(`reminder_submit_${hour}_${minute}`)
-                    .setTitle(`Hẹn giờ lúc ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+                    .setCustomId(`reminder_submit_${hour}`)
+                    .setTitle(`Hẹn giờ lúc ${hour.toString().padStart(2, '0')}:00`);
 
                 const titleInput = new TextInputBuilder()
                     .setCustomId('reminder_title')
@@ -144,7 +133,7 @@ module.exports = function discordHandler(lastChangeNumber) {
                     newRows.push(new ActionRowBuilder().addComponents(newComponent));
                 }
                 await interaction.update({
-                    content: `⏳ Đã chọn **${isHourMenu ? 'Giờ' : 'Phút'}**. Hãy chọn nốt mục còn lại...`,
+                    content: `⏳ Đã chọn **{'Giờ'}`,
                     components: newRows
                 });
             }
@@ -186,7 +175,6 @@ module.exports = function discordHandler(lastChangeNumber) {
             }
 
             try {
-                console.log('time mới tạo', timestampMs);
                 const newReminder = new Reminder({
                     name: title,
                     description: title,
