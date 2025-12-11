@@ -189,7 +189,7 @@ module.exports = function discordHandler(lastChangeNumber) {
                 const newReminder = new Reminder({
                     name: title,
                     description: title,
-                    startDates: timestampMs,
+                    startDate: timestampMs,
                     isSent: false
                 });
 
