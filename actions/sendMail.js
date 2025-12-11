@@ -12,7 +12,7 @@ let transporter = nodemailer.createTransport({
 });
 
 let mailOptions = {
-    from: '"Sender Name" <long.ezmar.010@gmail.com>',
+    from: '"Task Handler" <long.ezmar.010@gmail.com>',
     to: 'hoanglonglpgxxx@gmail.com',
     subject: 'Test Email from Node.js',
     text: 'This is a plain text email.',
