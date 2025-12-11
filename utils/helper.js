@@ -2,6 +2,17 @@ function debugLog(str) {
     console.log(new Date().toLocaleString('vi-VN', {}), str);
 }
 
+const dateToCron = (date) => {
+    const minutes = date.getMinutes();
+    const hours = date.getHours();
+    const days = date.getDate();
+    const months = date.getMonth() + 1;
+    const dayOfWeek = date.getDay();
+
+    return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
+};
+
 module.exports = {
-    debugLog
+    debugLog,
+    dateToCron
 };
