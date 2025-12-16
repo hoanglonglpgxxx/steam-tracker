@@ -14,11 +14,24 @@ const DB = process.env.DATABASE ? process.env.DATABASE.replace(
     encodeURIComponent(process.env.DATABASE_PASSWORD || '')
 ) : null;
 
-let lastChangeNumber = 0;
+let lastChange = {
+    "247060": 0,
+    "570": 0
+};
 
 // Load trạng thái cũ
 if (fs.existsSync(STATE_FILE)) {
-    try { lastChangeNumber = JSON.parse(fs.readFileSync(STATE_FILE)).changeNumber || 0; } catch (e) { }
+    try {
+        const fileData = JSON.parse(fs.readFileSync(STATE_FILE));
+
+        if (fileData.changeNumber) {
+            lastChange["247060"] = fileData.changeNumber;
+        } else {
+            lastChange = { ...lastChange, ...fileData };
+        }
+    } catch (e) {
+        console.error("Error reading state file:", e);
+    }
 }
 
 
@@ -44,12 +57,12 @@ if (DB) {
 }
 
 try {
-    steamHandler(lastChangeNumber);
+    steamHandler(lastChange);
 } catch (err) {
     console.error('Cant connect to discord', err);
 }
 try {
-    discordHandler(lastChangeNumber);
+    discordHandler(lastChange);
 } catch (err) {
     console.error('Cant connect to discord', err);
 }
