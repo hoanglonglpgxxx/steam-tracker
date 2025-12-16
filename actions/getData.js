@@ -22,15 +22,17 @@ async function getInTimeReminders() {
             $gte: startMs,
             $lt: endMs
         },
-        isSent: false
+        isSent: false,
+        isConfirmed: false
     });
 
     return reminders;
 };
 
-async function getNotSentReminders() {
+async function getSendableReminder() {
     const reminders = await Reminder.find({
-        isSent: false
+        isSent: false,
+        isConfirmed: false
     });
 
     return reminders;
@@ -44,6 +46,6 @@ async function getReminderById(id) {
 
 module.exports = {
     getInTimeReminders,
-    getNotSentReminders,
+    getSendableReminder,
     getReminderById
 };
