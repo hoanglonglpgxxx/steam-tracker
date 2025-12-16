@@ -52,6 +52,6 @@ try {
 }
 
 const port = process.env.PORT || 8000;
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => { // để như này để allow được IPv4
     console.log(`server running on port ${port}`);
 });
