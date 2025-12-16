@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { steamHandler } = require('./platforms/steam');
-const { initScheduledJobs } = require('./actions/cronJobs');
+const { initScheduledJobs, taskAuto } = require('./actions/cronJobs');
 const discordHandler = require('./platforms/discord');
 const { debugLog } = require('./utils/helper');
 const app = require('./app');
@@ -32,6 +32,9 @@ if (DB) {
         debugLog('DB connected');
 
         initScheduledJobs();
+
+        taskAuto('0 0 * * *', initScheduledJobs);
+
     } catch (err) {
         console.error('DB connection error:', err);
         process.exit(1);
