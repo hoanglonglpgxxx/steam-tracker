@@ -3,6 +3,7 @@ const { steamHandler } = require('./platforms/steam');
 const { initScheduledJobs } = require('./actions/cronJobs');
 const discordHandler = require('./platforms/discord');
 const { debugLog } = require('./utils/helper');
+const app = require('./app');
 const fs = require('fs');
 
 require('dotenv').config();
@@ -49,3 +50,8 @@ try {
 } catch (err) {
     console.error('Cant connect to discord', err);
 }
+
+const port = process.env.PORT || 8000;
+const server = app.listen(port, () => {
+    console.log(`server running on port ${port}`);
+});

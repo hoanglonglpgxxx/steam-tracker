@@ -13,12 +13,17 @@
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.2",
+    "cors": "^2.8.5",
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "mongoose": "^9.0.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.11",
     "slugify": "^1.6.6",
-    "steam-user": "^5.2.3"
+    "steam-user": "^5.2.3",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
