@@ -61,7 +61,7 @@ const executeTask = async (reminder) => {
     try {
         // Double check DB xem đã gửi chưa (tránh race condition)
         const currentDoc = await getReminderById(reminder._id);
-        if (!currentDoc || currentDoc.isSent) return;
+        if (!currentDoc || currentDoc.isConfirmed) return;
 
         // Gửi mail
         await sendMail(reminder);
