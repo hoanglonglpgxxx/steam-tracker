@@ -22,7 +22,6 @@ async function getInTimeReminders() {
             $gte: startMs,
             $lt: endMs
         },
-        isSent: false,
         isConfirmed: false
     });
 
@@ -31,7 +30,6 @@ async function getInTimeReminders() {
 
 async function getSendableReminder() {
     const reminders = await Reminder.find({
-        isSent: false,
         isConfirmed: false
     });
 
