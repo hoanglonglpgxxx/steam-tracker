@@ -5,8 +5,7 @@ const reminderSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
-        required: [true, 'Tour must have a name'],
-        unique: true,
+        required: [true, 'Reminder must have a name'],
     },
     description: {
         type: String,
@@ -23,6 +22,10 @@ const reminderSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isConfirmed: {
+        type: Boolean,
+        default: false
+    }
 }, {
     toJSON: {
         virtuals: true
