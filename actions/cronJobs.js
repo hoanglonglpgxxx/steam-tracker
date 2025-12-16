@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { getInTimeReminders, getNotSentReminders, getReminderById } = require('./getData');
+const { getInTimeReminders, getSendableReminder, getReminderById } = require('./getData');
 const { transporter, mailOptions } = require('./sendMail');
 const { debugLog, dateToCron } = require('../utils/helper');
 const path = require('path');
@@ -87,7 +87,7 @@ const initScheduledJobs = async () => {
 
     // Lấy tất cả các task chưa gửi (isSent: false)
     // Không cần filter ngày, cứ chưa gửi là lấy lên để check
-    const pendingReminders = await getNotSentReminders();
+    const pendingReminders = await getSendableReminder();
     pendingReminders.forEach(reminder => {
         scheduleOneTask(reminder);
     });
