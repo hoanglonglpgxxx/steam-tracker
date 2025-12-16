@@ -83,16 +83,16 @@ const executeTask = async (reminder) => {
 };
 
 const initScheduledJobs = async () => {
-    console.log('--- System Restarting: Reloading tasks from DB ---');
+    console.log('--- System Restarting or auto recheck at start of day: Reloading tasks from DB ---');
 
-    // Lấy tất cả các task chưa gửi (isSent: false)
+    // Lấy tất cả các task chưa confirm (isConfirmed: false)
     // Không cần filter ngày, cứ chưa gửi là lấy lên để check
     const pendingReminders = await getSendableReminder();
     pendingReminders.forEach(reminder => {
-        scheduleOneTask(reminder);
+        if (!scheduledJobs[reminder._id]) scheduleOneTask(reminder);
     });
 
-    console.log(`-- - Reloaded ${pendingReminders.length} tasks into RAM-- - `);
+    console.log(`-- Reloaded ${pendingReminders.length} tasks into RAM --`);
 };
 
 const taskAuto = async (time, callback) => {
