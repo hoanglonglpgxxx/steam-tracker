@@ -9,3 +9,6 @@ git pull gitlab main
 git remote rename origin github-backup
 git remote rename gitlab origin
 git push -u origin main
+
+
+test aa
