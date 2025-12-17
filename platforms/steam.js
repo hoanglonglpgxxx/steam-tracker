@@ -41,10 +41,17 @@ function getSteamUpdateInfo(appId) {
                     : `Unknown App ${appId}`;
             }
 
+            let appType = "Unknown";
+            if (appData.appinfo && appData.appinfo.common && appData.appinfo.common.type) {
+                appType = appData.appinfo.common.type;
+            }
+            appType = appType.charAt(0).toUpperCase() + appType.slice(1);
+
             resolve({
                 appId: appId,
                 changeNumber: changeNum,
-                name: finalName
+                name: finalName,
+                type: appType
             });
         });
     });
