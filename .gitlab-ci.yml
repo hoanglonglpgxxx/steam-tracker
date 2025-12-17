@@ -1,13 +1,14 @@
-# 1. Chọn Docker image có sẵn Node.js để chạy pipeline (nên khớp version với server)
+# 1. Chọn Docker image
 image: node:18
 
-# 2. Định nghĩa các giai đoạn (Stages) sẽ chạy theo thứ tự
+# 2. Định nghĩa các giai đoạn (Stages)
 stages:
   - build
   - test
   - deploy
+  - sync_to_github  # <--- CẦN THÊM DÒNG NÀY
 
-# 3. Cấu hình Cache để không phải tải lại node_modules mỗi lần chạy (tăng tốc độ)
+# 3. Cấu hình Cache
 cache:
   paths:
     - node_modules/
@@ -18,52 +19,46 @@ build_app:
   script:
     - echo "Bắt đầu cài đặt dependencies..."
     - npm install
-  # Lưu lại node_modules để truyền sang các step sau
   artifacts:
     paths:
       - node_modules/
 
-# --- GIAI ĐOẠN 2: TEST (Tuỳ chọn) ---
+# --- GIAI ĐOẠN 2: TEST ---
 test_app:
   stage: test
   script:
     - echo "Đang chạy test..."
-    # - npm test  <-- Bỏ comment dòng này nếu bạn có viết test
     - echo "Test thành công!"
 
-# --- GIAI ĐOẠN 3: DEPLOY (Quan trọng nhất) ---
+# --- GIAI ĐOẠN 3: DEPLOY ---
 deploy_production:
   stage: deploy
-  image: ubuntu:latest # Dùng image ubuntu nhẹ để chạy lệnh SSH
+  image: ubuntu:latest
   before_script:
-    # Cài đặt ssh-agent để kết nối tới server của bạn
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    # Thêm SSH Key từ biến môi trường (sẽ cài đặt ở bước sau)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    # Bỏ qua xác thực host key (để tránh hỏi yes/no khi connect lần đầu)
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-
   script:
     - echo "Đang deploy lên server..."
-    # Lệnh SSH thực thi trên server của bạn
+    # Lưu ý: Đảm bảo đường dẫn thư mục và lệnh forever là đúng trên server của bạn
     - ssh $SSH_USER@$SSH_SERVER_IP "cd /steam-tracker && git pull origin main && npm install && forever restart 0"
 
-  push_to_github:
-    stage: sync_to_github
-    image: alpine:latest
-    before_script:
-      - apk add --no-cache git openssh-client
-      - mkdir -p ~/.ssh
-      - echo "$GH_PUSH_KEY" > ~/.ssh/id_rsa # Key SSH của GitHub
-      - chmod 600 ~/.ssh/id_rsa
-      - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-    script:
-      # Cấu hình remote github và đẩy code sang
-      - git remote add github git@github.com:hoanglonglpgxxx/steam-tracker.git || git remote set-url github git@github.com:hoanglonglpgxxx/steam-tracker.git
-      - git push github HEAD:main # Đẩy nhánh hiện tại sang nhánh main của GitHub
-    only:
-      - main # Chỉ chạy khi code ở nhánh main
-  when: on_success # QUAN TRỌNG: Chỉ chạy khi các bước trên đã Thành công
+# --- GIAI ĐOẠN 4: SYNC TO GITHUB (SỬA LỖI Ở ĐÂY) ---
+# Job này phải nằm sát lề trái, ngang hàng với deploy_production
+push_to_github:
+  stage: sync_to_github
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$GH_PUSH_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+  script:
+    - git remote add github git@github.com:hoanglonglpgxxx/steam-tracker.git || git remote set-url github git@github.com:hoanglonglpgxxx/steam-tracker.git
+    - git push github HEAD:main
+  only:
+    - main
