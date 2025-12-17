@@ -50,7 +50,7 @@ function getSteamUpdateInfo(appId) {
     });
 }
 
-async function autoCheckUpdate(lastChangeState) {
+async function autoCheckUpdate(lastChangeState, notificationCallback) {
     try {
         if (!steamClient.steamID) return;
 
@@ -63,6 +63,10 @@ async function autoCheckUpdate(lastChangeState) {
 
                 if (info.changeNumber > currentLastChange) {
                     debugLog(`[UPDATE] Detect new Changelist for ${info.name} (${appId}): ${info.changeNumber}`);
+
+                    if (notificationCallback) {
+                        await notificationCallback(appId, info.name, info.changeNumber, currentLastChange);
+                    }
 
                     lastChangeState[appId] = info.changeNumber;
                     hasUpdates = true;
@@ -83,7 +87,7 @@ async function autoCheckUpdate(lastChangeState) {
     }
 }
 
-function steamHandler(lastChangeState) {
+function steamHandler(lastChangeState, notificationCallback) {
     steamClient.setOption('promptSteamGuardCode', false);
     steamClient.logOn(STEAM_ACC);
 
@@ -96,9 +100,9 @@ function steamHandler(lastChangeState) {
             setTimeout(() => {
                 debugLog('[STEAM] 🚀 Bắt đầu theo dõi Changelist...');
 
-                autoCheckUpdate(lastChangeState);
+                autoCheckUpdate(lastChangeState, notificationCallback);
 
-                taskAuto('0 0,12 * * *', () => autoCheckUpdate(lastChangeState));
+                taskAuto('0 0,12 * * *', () => autoCheckUpdate(lastChangeState, notificationCallback));
             }, 5000);
         });
     });

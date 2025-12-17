@@ -22,7 +22,26 @@ const discordClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-module.exports = function discordHandler(lastChangeState) {
+async function sendUpdateNotification(appId, appName, newChange, oldChange) {
+    try {
+        const channel = await discordClient.channels.fetch(CHANNEL_ID);
+        if (channel) {
+            const info = { name: appName, changeNumber: newChange };
+            // Re-use the embed creator logic
+            const embed = createSteamDBEmbed(info, oldChange, appId);
+
+            await channel.send({
+                content: `🚨 **UPDATE DETECTED for ${appName}!**`,
+                embeds: [embed]
+            });
+            console.log(`[DISCORD] Sent notification for ${appName} (${newChange})`);
+        }
+    } catch (err) {
+        console.error('[DISCORD] Error sending notification:', err);
+    }
+}
+
+function discordHandler(lastChangeState) {
     discordClient.on('clientReady', () => debugLog(`[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
     discordClient.on('messageCreate', async (message) => {
@@ -259,3 +278,7 @@ function createSteamDBEmbed(info, oldVer, appId) {
         .setTimestamp()
         .setFooter({ text: "SteamDB Monitor • Data from Valve PICS", iconURL: "https://steamdb.info/static/logo.png" });
 }
+
+
+module.exports = discordHandler;
+module.exports.sendUpdateNotification = sendUpdateNotification;
