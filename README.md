@@ -2,4 +2,10 @@ crontab check mỗi đầu giờ (từ 6h - 22h): query DB filter ngày hôm đ�
 
 
 WHAT IS Promise.all?
-TEST CICD NÀ 2
+
+
+các lệnh cần chạy ở máy nhà
+git pull gitlab main
+git remote rename origin github-backup
+git remote rename gitlab origin
+git push -u origin main
