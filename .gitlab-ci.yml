@@ -22,6 +22,7 @@ build_app:
   artifacts:
     paths:
       - node_modules/
+    expire_in: 1 hour
 
 # --- GIAI ĐOẠN 2: TEST ---
 test_app:
