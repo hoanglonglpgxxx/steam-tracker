@@ -1,0 +1,65 @@
+# 1. Chọn Docker image
+image: node:18
+
+# 2. Định nghĩa các giai đoạn (Stages)
+stages:
+  - build
+  - test
+  - deploy
+  - sync_to_github  # <--- CẦN THÊM DÒNG NÀY
+
+# 3. Cấu hình Cache
+cache:
+  paths:
+    - node_modules/
+
+# --- GIAI ĐOẠN 1: BUILD ---
+build_app:
+  stage: build
+  script:
+    - echo "Bắt đầu cài đặt dependencies..."
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/
+
+# --- GIAI ĐOẠN 2: TEST ---
+test_app:
+  stage: test
+  script:
+    - echo "Đang chạy test..."
+    - echo "Test thành công!"
+
+# --- GIAI ĐOẠN 3: DEPLOY ---
+deploy_production:
+  stage: deploy
+  image: ubuntu:latest
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - echo "Đang deploy lên server..."
+    # Lưu ý: Đảm bảo đường dẫn thư mục và lệnh forever là đúng trên server của bạn
+    - ssh $SSH_USER@$SSH_SERVER_IP "cd steam-tracker && git pull origin main && npm install && forever restart 0"
+
+# --- GIAI ĐOẠN 4: SYNC TO GITHUB (SỬA LỖI Ở ĐÂY) ---
+# Job này phải nằm sát lề trái, ngang hàng với deploy_production
+push_to_github:
+  stage: sync_to_github
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git openssh-client
+    - mkdir -p ~/.ssh
+    # Thêm đoạn "| base64 -d" để giải mã
+    - echo "$GH_PUSH_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+  script:
+    - git remote add github git@github.com:hoanglonglpgxxx/steam-tracker.git || git remote set-url github git@github.com:hoanglonglpgxxx/steam-tracker.git
+    - git push github HEAD:main
+  only:
+    - main
