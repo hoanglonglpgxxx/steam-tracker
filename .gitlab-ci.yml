@@ -30,25 +30,31 @@ test_app:
     - echo "Đang chạy test..."
     - echo "Test thành công!"
 
-# --- GIAI ĐOẠN 4: SYNC TO GITHUB (SỬA LỖI Ở ĐÂY) ---
+# --- GIAI ĐOẠN 3: SYNC TO GITHUB (SỬA LỖI Ở ĐÂY) ---
 # Job này phải nằm sát lề trái, ngang hàng với deploy_production
 push_to_github:
   stage: sync_to_github
   image: alpine:latest
+  variables:
+    GIT_DEPTH: 0
   before_script:
     - apk add --no-cache git openssh-client
     - mkdir -p ~/.ssh
-    # Thêm đoạn "| base64 -d" để giải mã
     - echo "$GH_PUSH_KEY" | base64 -d > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   script:
+    # Thêm lệnh fetch này để đảm bảo đồng bộ lịch sử nếu GIT_DEPTH chưa đủ
+    - git fetch --unshallow origin || git fetch origin 
+    
     - git remote add github git@github.com:hoanglonglpgxxx/steam-tracker.git || git remote set-url github git@github.com:hoanglonglpgxxx/steam-tracker.git
+    
+    # Nếu vẫn lỗi, đổi thành push force (-f) để ép GitHub giống hệt GitLab
     - git push github HEAD:main
   only:
     - main
 
-# --- GIAI ĐOẠN 3: DEPLOY ---
+# --- GIAI ĐOẠN 4: DEPLOY ---
 deploy_production:
   stage: deploy
   image: ubuntu:latest
