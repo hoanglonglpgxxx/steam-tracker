@@ -269,7 +269,7 @@ function createSteamDBEmbed(info, oldVer, appId) {
         .setDescription(isNew ? `**🚀 NEW UPDATE DETECTED!**` : "No new changes.")
         .addFields(
             { name: 'AppID', value: `\`${appId}\``, inline: true },
-            { name: 'Type', value: `\`Unknown\``, inline: true },
+            { name: 'Type', value: `\`${typeDisplay}\``, inline: true },
             { name: 'Name', value: `\`${info.name}\``, inline: false },
             { name: '🆕 Changelist ID', value: `\`#${info.changeNumber}\``, inline: true },
             { name: '⏮️ Previous', value: `\`#${oldVer}\``, inline: true }
