@@ -57,7 +57,7 @@ if (DB) {
 }
 
 try {
-    steamHandler(lastChange);
+    steamHandler(lastChange, discordHandler.sendUpdateNotification);
 } catch (err) {
     console.error('Cant connect to discord', err);
 }
