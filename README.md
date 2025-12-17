@@ -2,4 +2,4 @@ crontab check mỗi đầu giờ (từ 6h - 22h): query DB filter ngày hôm đ�
 
 
 WHAT IS Promise.all?
-TEST CICD NÀ
+TEST CICD NÀ 2
