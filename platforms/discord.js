@@ -16,7 +16,8 @@ const {
 const { debugLog } = require('../utils/helper');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const CHANNEL_ID = '1446083526826004591';
+const REMINDER_CHANNEL_ID = '1446083526826004591';
+const STEAM_CHANNEL_ID = '1446034078204825702';
 const APP_IDs = [247060, 570];
 const discordClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
@@ -24,7 +25,7 @@ const discordClient = new Client({
 
 async function sendUpdateNotification(appId, appName, newChange, oldChange) {
     try {
-        const channel = await discordClient.channels.fetch(CHANNEL_ID);
+        const channel = await discordClient.channels.fetch(STEAM_CHANNEL_ID);
         if (channel) {
             const info = { name: appName, changeNumber: newChange };
             // Re-use the embed creator logic
@@ -47,8 +48,8 @@ function discordHandler(lastChangeState) {
     discordClient.on('messageCreate', async (message) => {
         if (message.author.bot) return;
 
-        // Lệnh nhập code Steam
-        if (message.content.startsWith('!code ')) {
+        // Lệnh nhập code Steam - BỎ VÌ BỎ STEAMGUARD Ở ACCOUNT RỒI
+        /* if (message.content.startsWith('!code ')) {
             const code = message.content.split(' ')[1];
             if (typeof steamGuardCallback === 'function') {
                 message.reply(`🔄 Đang gửi mã \`${code}\` lên Steam...`);
@@ -62,10 +63,12 @@ function discordHandler(lastChangeState) {
                 }
             }
             return;
-        }
+        } */
 
         // Lệnh Status
         if (message.content === '!status') {
+            if (message.channel.id !== STEAM_CHANNEL_ID) return;
+
             if (!steamClient.steamID) return message.reply("⚠️ Bot chưa login xong Steam. Vui lòng chờ...");
 
             const msg = await message.reply("🔄 Đang lấy dữ liệu từ Valve...");
@@ -94,7 +97,7 @@ function discordHandler(lastChangeState) {
         }
 
         if (message.content === '!r') {
-            if (message.channelId !== CHANNEL_ID) return;
+            if (message.channelId !== REMINDER_CHANNEL_ID) return;
 
             const hourMenu = new StringSelectMenuBuilder()
                 .setCustomId('reminder_select_hour')
@@ -262,6 +265,9 @@ function discordHandler(lastChangeState) {
 // --- CÁC HÀM HỖ TRỢ ---
 function createSteamDBEmbed(info, oldVer, appId) {
     const isNew = info.changeNumber > oldVer;
+
+    const typeDisplay = info.type || "Unknown";
+
     return new EmbedBuilder()
         .setColor(isNew ? 0x66c0f4 : 0x1b2838)
         .setTitle(`Changelist #${info.changeNumber}`)
