@@ -17,12 +17,12 @@ const { debugLog } = require('../utils/helper');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const CHANNEL_ID = '1446083526826004591';
-const APP_IDs = 247060;
+const APP_IDs = [247060, 570];
 const discordClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-module.exports = function discordHandler(lastChangeNumber) {
+module.exports = function discordHandler(lastChangeState) {
     discordClient.on('clientReady', () => debugLog(`[DISCORD] 🤖 Bot online: ${discordClient.user.tag}`));
 
     discordClient.on('messageCreate', async (message) => {
@@ -31,11 +31,16 @@ module.exports = function discordHandler(lastChangeNumber) {
         // Lệnh nhập code Steam
         if (message.content.startsWith('!code ')) {
             const code = message.content.split(' ')[1];
-            if (steamGuardCallback) {
+            if (typeof steamGuardCallback === 'function') {
                 message.reply(`🔄 Đang gửi mã \`${code}\` lên Steam...`);
                 steamGuardCallback(code);
             } else {
-                message.reply("Bot đang không yêu cầu mã (Đã login rồi).");
+                if (steamClient) {
+                    message.reply(`🔄 Đang gửi mã \`${code}\` lên Steam...`);
+                    steamClient.inputSteamGuardCode(code);
+                } else {
+                    message.reply("Bot đang không yêu cầu mã (Đã login rồi) hoặc không tìm thấy Client.");
+                }
             }
             return;
         }
@@ -45,9 +50,25 @@ module.exports = function discordHandler(lastChangeNumber) {
             if (!steamClient.steamID) return message.reply("⚠️ Bot chưa login xong Steam. Vui lòng chờ...");
 
             const msg = await message.reply("🔄 Đang lấy dữ liệu từ Valve...");
+
             try {
-                const info = await getSteamUpdateInfo();
-                await msg.edit({ content: null, embeds: [createSteamDBEmbed(info, lastChangeNumber)] });
+                const embeds = [];
+                for (const appId of APP_IDs) {
+                    try {
+                        const info = await getSteamUpdateInfo(appId);
+                        const oldVer = lastChangeState[appId] || 0;
+                        embeds.push(createSteamDBEmbed(info, oldVer, appId));
+                    } catch (innerErr) {
+                        console.error(`Error fetching info for ${appId}:`, innerErr);
+                    }
+                }
+
+                if (embeds.length > 0) {
+                    await msg.edit({ content: null, embeds: embeds });
+                } else {
+                    await msg.edit("❌ Không lấy được dữ liệu nào.");
+                }
+
             } catch (e) {
                 await msg.edit(`❌ Lỗi: ${e.message}`);
             }
@@ -220,21 +241,21 @@ module.exports = function discordHandler(lastChangeNumber) {
 };
 
 // --- CÁC HÀM HỖ TRỢ ---
-function createSteamDBEmbed(info, oldVer) {
+function createSteamDBEmbed(info, oldVer, appId) {
     const isNew = info.changeNumber > oldVer;
     return new EmbedBuilder()
         .setColor(isNew ? 0x66c0f4 : 0x1b2838)
         .setTitle(`Changelist #${info.changeNumber}`)
-        .setURL(`https://steamdb.info/app/${APP_ID}/history/`)
+        .setURL(`https://steamdb.info/app/${appId}/history/`)
         .setDescription(isNew ? `**🚀 NEW UPDATE DETECTED!**` : "No new changes.")
         .addFields(
-            { name: 'AppID', value: `\`${APP_ID}\``, inline: true },
+            { name: 'AppID', value: `\`${appId}\``, inline: true },
             { name: 'Type', value: `\`Unknown\``, inline: true },
             { name: 'Name', value: `\`${info.name}\``, inline: false },
             { name: '🆕 Changelist ID', value: `\`#${info.changeNumber}\``, inline: true },
             { name: '⏮️ Previous', value: `\`#${oldVer}\``, inline: true }
         )
-        .setThumbnail(`https://steamdb.info/static/img/app/${APP_ID}.jpg`)
+        .setThumbnail(`https://steamdb.info/static/img/app/${appId}.jpg`)
         .setTimestamp()
         .setFooter({ text: "SteamDB Monitor • Data from Valve PICS", iconURL: "https://steamdb.info/static/logo.png" });
 }
