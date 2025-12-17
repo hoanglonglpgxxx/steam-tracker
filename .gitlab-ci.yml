@@ -44,7 +44,7 @@ deploy_production:
   script:
     - echo "Đang deploy lên server..."
     # Lưu ý: Đảm bảo đường dẫn thư mục và lệnh forever là đúng trên server của bạn
-    - ssh $SSH_USER@$SSH_SERVER_IP "cd /steam-tracker && git pull origin main && npm install && forever restart 0"
+    - ssh $SSH_USER@$SSH_SERVER_IP "cd steam-tracker && git pull origin main && npm install && forever restart 0"
 
 # --- GIAI ĐOẠN 4: SYNC TO GITHUB (SỬA LỖI Ở ĐÂY) ---
 # Job này phải nằm sát lề trái, ngang hàng với deploy_production
