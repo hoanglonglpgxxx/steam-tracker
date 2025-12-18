@@ -38,13 +38,12 @@ const scheduleOneTask = (reminder) => {
 
     // Case A: Nếu thời gian đã trôi qua rồi mà chưa gửi -> Gửi bù ngay lập tức!
     if (startTime <= now) {
-        console.log(`[MISSED] Task ${reminder.name} was missed.Sending now...`);
+        debugLog(`[MISSED] Task ${reminder.name} was missed.Sending now...`);
         executeTask(reminder);
         return;
     }
     // Case B: Thời gian ở tương lai -> Lên lịch
-    console.log(`[SCHEDULE] Task ${reminder.name
-        } scheduled at ${startTime} `);
+    debugLog(`[SCHEDULE] Task ${reminder.name} scheduled at ${startTime} `);
 
     const timeExpression = dateToCron(startTime);
     const task = cron.schedule(timeExpression, () => {
@@ -65,7 +64,7 @@ const executeTask = async (reminder) => {
 
         // Gửi mail
         await sendMail(reminder);
-        console.log(`[SENT] Email sent for ${reminder.name}`);
+        debugLog(`[SENT] Email sent for ${reminder.name}`);
 
         // Update DB
         currentDoc.isSent = true;
@@ -83,7 +82,7 @@ const executeTask = async (reminder) => {
 };
 
 const initScheduledJobs = async () => {
-    console.log('--- System Restarting or auto recheck at start of day: Reloading tasks from DB ---');
+    debugLog('--- System Restarting or auto recheck at start of day: Reloading tasks from DB ---');
 
     // Lấy tất cả các task chưa confirm (isConfirmed: false)
     // Không cần filter ngày, cứ chưa gửi là lấy lên để check
@@ -92,7 +91,7 @@ const initScheduledJobs = async () => {
         if (!scheduledJobs[reminder._id]) scheduleOneTask(reminder);
     });
 
-    console.log(`-- Reloaded ${pendingReminders.length} tasks into RAM --`);
+    debugLog(`-- Reloaded ${pendingReminders.length} tasks into RAM --`);
 };
 
 const taskAuto = async (time, callback) => {
