@@ -1,5 +1,5 @@
-function debugLog(str) {
-    console.log(new Date().toLocaleString('vi-VN', {}), str);
+function debugLog(...str) {
+    console.log(new Date().toLocaleString('vi-VN', {}), ...str);
 }
 
 const dateToCron = (date) => {
