@@ -46,10 +46,10 @@ push_to_github:
     - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   script:
     # Thêm lệnh fetch này để đảm bảo đồng bộ lịch sử nếu GIT_DEPTH chưa đủ
-    - git fetch --unshallow origin || git fetch origin 
-    
+    - git fetch --unshallow origin || git fetch origin
+
     - git remote add github git@github.com:hoanglonglpgxxx/steam-tracker.git || git remote set-url github git@github.com:hoanglonglpgxxx/steam-tracker.git
-    
+
     # Nếu vẫn lỗi, đổi thành push force (-f) để ép GitHub giống hệt GitLab
     - git push github HEAD:main
   only:
@@ -60,7 +60,7 @@ deploy_production:
   stage: deploy
   image: ubuntu:latest
   before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
@@ -69,6 +69,6 @@ deploy_production:
   script:
     - echo "Đang deploy lên server..."
     # Lưu ý: Đảm bảo đường dẫn thư mục và lệnh forever là đúng trên server của bạn
-    - ssh $SSH_USER@$SSH_SERVER_IP "cd steam-tracker && git pull origin main && npm install && forever restart 0"
+    - ssh $SSH_USER@$SSH_SERVER_IP "cd /www/u01/steam-tracker && git pull origin main && npm install && forever restart 0"
   only:
     - main

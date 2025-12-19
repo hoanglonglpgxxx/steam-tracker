@@ -22,7 +22,7 @@ function sendMail(reminder) {
     mailOptions.html = mailOptions.html.replaceAll('ITEM_ID', reminder.id);
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            debugLog('Error sending email:', error);
+            debugLog('Error sending email:', error, JSON.stringify(info));
         } else {
             debugLog('Email sent:', info.response);
         }
