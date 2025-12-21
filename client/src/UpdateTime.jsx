@@ -11,9 +11,7 @@ function UpdateTime() {
   const [timeVal, setTimeVal] = useState("");
   const [msg, setMsg] = useState(""); // Thông báo lỗi/thành công
 
-  // URL của Backend Node.js (Port 8000)
-  // LƯU Ý: Phải đúng địa chỉ server của bạn
-  const API_URL = `http://localhost:8000/api/v1/reminder/${id}`;
+  const API_URL = `http://http://34.70.65.137/:8000/api/v1/reminder/${id}`;
 
   // 1. Tương tự $(document).ready(): Chạy ngay khi mở trang
   useEffect(() => {
