@@ -31,8 +31,16 @@ const limiter = rateLimit({
     message: 'Too many requests, please try again in an hour'
 });
 
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
 app.use('/api', limiter);//apply for all APIs
 
 app.use('/api/v1/reminder', reminderRouter); //method : Mounting Router
+
+router.patch('/:id/updateTime', reminderController.updateTime);
 
 module.exports = app;

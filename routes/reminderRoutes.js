@@ -13,4 +13,6 @@ router
 // Allow confirmation via GET link: /api/v1/reminder/:id/confirm?isConfirmed=true
 router.get('/:id/confirm', reminderController.confirmReminder);
 
+router.patch('/:id/updateTime', reminderController.updateTime);
+
 module.exports = router;

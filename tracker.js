@@ -61,6 +61,7 @@ try {
 } catch (err) {
     console.error('Cant connect to discord', err);
 }
+
 try {
     discordHandler(lastChange);
 } catch (err) {
