@@ -37,10 +37,10 @@ app.use('/api/v1/reminder', reminderRouter); //method : Mounting Router
 
 
 const path = require('path');
-app.use(express.static(path.join(__dirname, 'client/build')));
+app.use(express.static(path.join(__dirname, 'client/public')));
 
 app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
 });
 
 module.exports = app;
