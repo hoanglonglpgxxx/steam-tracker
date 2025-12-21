@@ -51,7 +51,7 @@ function UpdateTime() {
       const res = await fetch(`${API_URL}/updateTime`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newTime: fullTime.toISOString() }),
+        body: JSON.stringify({ startDate: fullTime.getTime() }),
       });
 
       const result = await res.json();
