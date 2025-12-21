@@ -1,4 +1,4 @@
 /node_modules
 .env
-last_change.json
+# last_change.json
 notes/
