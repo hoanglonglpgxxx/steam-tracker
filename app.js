@@ -43,6 +43,4 @@ app.get(/.*/, (req, res) => {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
-router.patch('/:id/updateTime', reminderController.updateTime);
-
 module.exports = app;
