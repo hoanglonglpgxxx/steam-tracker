@@ -5,10 +5,9 @@ WHAT IS Promise.all?
 
 
 các lệnh cần chạy ở máy nhà
+git remote add gitlab  https://gitlab.com/hoanglonglpgxxx/steam-tracker.git
 git pull gitlab main
 git remote rename origin github-backup
 git remote rename gitlab origin
 git push -u origin main
 
-
-test aa
